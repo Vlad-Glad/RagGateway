@@ -1,5 +1,7 @@
 using CorporateRAG.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using CorporateRAG.Application.Abstractions.Persistence;
+using CorporateRAG.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore.Design;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IChunkRepository, ChunkRepository>();
 
 var app = builder.Build();
 
