@@ -5,6 +5,8 @@ using CorporateRAG.Infrastructure.Persistence.Repositories;
 using CorporateRAG.Application.Abstractions.Storage;
 using CorporateRAG.Infrastructure.Storage;
 using CorporateRAG.Application.UseCases.Documents;
+using CorporateRAG.Application.Abstractions.Documents;
+using CorporateRAG.Infrastructure.Documents;
 using Microsoft.EntityFrameworkCore.Design;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +26,10 @@ builder.Services.AddScoped<IChunkRepository, ChunkRepository>();
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<UploadDocumentService>();
+
+builder.Services.AddScoped<ITextExtractor, TextFileExtractor>();
+builder.Services.AddScoped<ITextChunker, SimpleTextChunker>();
+builder.Services.AddScoped<IndexDocumentService>();
 
 var app = builder.Build();
 

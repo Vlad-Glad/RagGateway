@@ -30,6 +30,14 @@ public class DocumentController : ControllerBase
             file.ContentType);
 
         return Ok(new { Id = documentId });
+    }
 
+    [HttpPost("{id:guid}/index")]
+    public async Task<IActionResult> Index(
+        Guid id,
+        [FromServices] IndexDocumentService indexDocumentService)
+    {
+        await indexDocumentService.IndexAsync(id);
+        return Ok(new { Message = "Document indexed successfully." });
     }
 }
