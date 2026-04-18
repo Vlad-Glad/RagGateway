@@ -4,19 +4,14 @@ namespace CorporateRAG.Infrastructure.Documents;
 
 public class CompositeTextExtractor : ITextExtractor
 {
-    public readonly IEnumerable<ITextExtractor> _extractors;
+    public readonly IEnumerable<IDocumentTextExtractor> _extractors;
 
-    public CompositeTextExtractor(IEnumerable<ITextExtractor> extractors)
+    public CompositeTextExtractor(IEnumerable<IDocumentTextExtractor> extractors)
     {
         _extractors = extractors;
     }
 
-    public bool CanExtract(string contentType)
-    {
-        return _extractors.Any(x => x.CanExtract(contentType));
-    }
-
-    public async Task<string> ExtractTextAsync(
+    public async Task<IReadOnlyCollection<ExtractedTextPage>> ExtractTextAsync(
         string filePath,
         string contentType,
         CancellationToken cancellationToken = default)

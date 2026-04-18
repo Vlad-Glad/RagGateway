@@ -4,14 +4,14 @@ using UglyToad.PdfPig;
 
 namespace CorporateRAG.Infrastructure.Documents;
 
-public class PdfTextExtractor : ITextExtractor
+public class PdfTextExtractor : IDocumentTextExtractor
 {
     public bool CanExtract(string contentType)
     {
         return contentType == "application/pdf";
     }
 
-    public async Task<string> ExtractTextAsync(
+    public async Task<IReadOnlyCollection<ExtractedTextPage>> ExtractTextAsync(
         string filePath,
         string contentType,
         CancellationToken cancellationToken = default)
@@ -23,15 +23,16 @@ public class PdfTextExtractor : ITextExtractor
 
         using var document = PdfDocument.Open(filePath);
 
-        var textParts = new List<string>();
+        var pages = new List<ExtractedTextPage>();
 
         foreach (var page in document.GetPages())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
-            textParts.Add(page.Text);
+
+            pages.Add(new ExtractedTextPage(page.Number,
+                page.Text));
         }
 
-        return await Task.FromResult(string.Join(Environment.NewLine, textParts));
+        return await Task.FromResult(pages);
     }
 }

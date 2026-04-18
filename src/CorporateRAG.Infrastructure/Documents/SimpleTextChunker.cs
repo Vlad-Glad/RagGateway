@@ -1,5 +1,6 @@
 ﻿using CorporateRAG.Application.Abstractions.Documents;
 using System.Net.WebSockets;
+using System.Text;
 
 namespace CorporateRAG.Infrastructure.Documents;
 
@@ -8,27 +9,80 @@ public class SimpleTextChunker : ITextChunker
     private const int ChunkSize = 1024;
     private const int OverlapSize = 256;
 
-    public IReadOnlyCollection<string> Chunk(string text)
+    public IReadOnlyCollection<TextChunk> Chunk(IReadOnlyCollection<ExtractedTextPage> pages)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        if (pages.Count == 0)
         {
-            return Array.Empty<string>();
+            return Array.Empty<TextChunk>();
         }
 
-        var chunks = new List<string>();
-        var start = 0;
+        var fullTextBuilder = new StringBuilder();
+        var pageRanges = new List<PageTextRange>();
 
-        while (start < text.Length)
+        foreach (var page in pages)
         {
-            var length = Math.Min(ChunkSize, text.Length - start);
-            var chunk = text.Substring(start, length).Trim();
-
-            if (!string.IsNullOrWhiteSpace(chunk))
+            if (string.IsNullOrWhiteSpace(page.text))
             {
-                chunks.Add(chunk);
+                continue;
             }
 
-            if(start + length >= text.Length)
+            var startIndex = fullTextBuilder.Length;
+
+            fullTextBuilder.Append(page.text.Trim());
+            fullTextBuilder.Append(Environment.NewLine);
+
+            var endIndexExclusive = fullTextBuilder.Length;
+
+            if (page.PageNumber.HasValue)
+            {
+                pageRanges.Add(new PageTextRange(
+                    startIndex,
+                    endIndexExclusive,
+                    page.PageNumber.Value));
+            }
+        }
+
+        var fullText = fullTextBuilder.ToString();
+
+        if (string.IsNullOrWhiteSpace(fullText))
+        {
+            return Array.Empty<TextChunk>();
+        }
+
+        var chunks = new List<TextChunk>();
+        var start = 0;
+
+        while (start < fullText.Length)
+        {
+            var length = Math.Min(ChunkSize, fullText.Length - start);
+            var endExclusive = start + length;
+
+            var chunkText = fullText.Substring(start, length).Trim();
+
+            if (!string.IsNullOrWhiteSpace(chunkText))
+            {
+                var pagesForChunk = pageRanges
+                    .Where(x => x.StartIndex < endExclusive && x.EndIndexExclusive > start)
+                    .Select(x => x.PageNumber)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
+
+                int? startPageNumber = pagesForChunk.Count > 0
+                    ? pagesForChunk.First()
+                    : null;
+
+                int? endPageNumber = pagesForChunk.Count > 0
+                    ? pagesForChunk.Last()
+                    : null;
+
+                chunks.Add(new TextChunk(
+                    chunkText,
+                    startPageNumber,
+                    endPageNumber));
+            }
+            
+            if (endExclusive >= fullText.Length)
             {
                 break;
             }
@@ -38,4 +92,9 @@ public class SimpleTextChunker : ITextChunker
 
         return chunks;
     }
+
+    private sealed record PageTextRange(
+        int StartIndex,
+        int EndIndexExclusive,
+        int PageNumber);
 }

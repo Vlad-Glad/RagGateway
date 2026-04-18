@@ -32,19 +32,20 @@ public class IndexDocumentService
             throw new InvalidOperationException("Document not found.");
         }
 
-        var text = await _textExtractor.ExtractTextAsync(
+        var extractedPages = await _textExtractor.ExtractTextAsync(
             document.StoragePath,
             document.ContentType,
             cancellationToken);
 
-        var chunks = _textChunker.Chunk(text);
+        var chunks = _textChunker.Chunk(extractedPages);
 
         var documentChunks = chunks
-            .Select((chunkText, index) => new DocumentChunk(
+            .Select((chunk, index) => new DocumentChunk(
                 document.Id,
                 index,
-                chunkText,
-                pageNumber: null))
+                chunk.Text,
+                chunk.StartPageNumber,
+                chunk.EndPageNumber))
             .ToList();
 
         await _chunkRepository.AddRangeAsync(documentChunks, cancellationToken);
@@ -53,6 +54,4 @@ public class IndexDocumentService
         document.MarkAsIndexed();
         await _documentRepository.SaveChangesAsync(cancellationToken);
     }
-
-
 }

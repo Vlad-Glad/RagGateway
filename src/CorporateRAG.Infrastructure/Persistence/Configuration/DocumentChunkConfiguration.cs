@@ -21,7 +21,9 @@ public class DocumentChunkConfiguration : IEntityTypeConfiguration<DocumentChunk
         builder.Property(x => x.Text)
             .IsRequired();
 
-        builder.Property(x => x.PageNumber);
+        builder.Property(x => x.StartPageNumber);
+
+        builder.Property(x => x.EndPageNumber);
 
         builder.HasIndex(x => new { x.DocumentId, x.ChunkIndex })
             .IsUnique();

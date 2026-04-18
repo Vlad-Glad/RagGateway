@@ -1,8 +1,9 @@
-﻿
-namespace CorporateRAG.Application.Abstractions.Documents;
+﻿namespace CorporateRAG.Application.Abstractions.Documents;
 
-public interface ITextExtractor
+public interface IDocumentTextExtractor
 {
+    bool CanExtract(string contentTyp);
+
     Task<IReadOnlyCollection<ExtractedTextPage>> ExtractTextAsync(
         string filePath,
         string contentType,

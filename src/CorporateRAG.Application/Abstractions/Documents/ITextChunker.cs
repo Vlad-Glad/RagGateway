@@ -1,9 +1,8 @@
-﻿
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using CorporateRAG.Application.Abstractions.Documents;
 
 namespace CorporateRAG.Application.Abstractions.Documents;
 
 public interface ITextChunker
 {
-    IReadOnlyCollection<string> Chunk(string text);
+    IReadOnlyCollection<TextChunk> Chunk(IReadOnlyCollection<ExtractedTextPage> pages);
 }

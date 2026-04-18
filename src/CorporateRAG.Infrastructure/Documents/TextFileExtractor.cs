@@ -2,13 +2,13 @@
 
 namespace CorporateRAG.Infrastructure.Documents;
 
-public class TextFileExtractor : ITextExtractor
+public class TextFileExtractor : IDocumentTextExtractor
 {
     public bool CanExtract(string contentType)
     {
         return contentType == "text/plain";
     }
-    public async Task<string> ExtractTextAsync(
+    public async Task<IReadOnlyCollection<ExtractedTextPage>> ExtractTextAsync(
         string filePath,
         string contentType,
         CancellationToken cancellationToken = default)
@@ -18,6 +18,11 @@ public class TextFileExtractor : ITextExtractor
             throw new NotSupportedException($"Content type '{contentType}' is not supported yet.");
         }
 
-        return await File.ReadAllTextAsync(filePath, cancellationToken);
+        var text = await File.ReadAllTextAsync(filePath, cancellationToken);
+
+        return new List<ExtractedTextPage>
+        {
+            new ExtractedTextPage(null, text)
+        };
     }
 }

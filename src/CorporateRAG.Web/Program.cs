@@ -27,7 +27,10 @@ builder.Services.AddScoped<IChunkRepository, ChunkRepository>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<UploadDocumentService>();
 
-builder.Services.AddScoped<ITextExtractor, TextFileExtractor>();
+builder.Services.AddScoped<IDocumentTextExtractor, TextFileExtractor>();
+builder.Services.AddScoped<IDocumentTextExtractor, PdfTextExtractor>();
+
+builder.Services.AddScoped<ITextExtractor, CompositeTextExtractor>();
 builder.Services.AddScoped<ITextChunker, SimpleTextChunker>();
 builder.Services.AddScoped<IndexDocumentService>();
 
